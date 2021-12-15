@@ -1,0 +1,91 @@
+<html>
+
+<head>
+  <script type="text/javascript" src="jquery.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="text/javascript">
+    const socket = io.connect('http://localhost:4040');
+
+    socket.on('mes2', function (messages) {
+
+      i = 0
+      var mesSize = messages.length
+      function loadPages() {
+        let temp = messages[i % mesSize].template;
+        $("#result").load(temp);
+      }
+      function loadDetails() {
+        var text = ''
+        var array = messages[i % mesSize].text[0]
+        for (let j in array) {
+          text += array[j] + '\n'
+        }
+        $("p").text(text)
+        var arrayIm = messages[i % mesSize].images[0]
+        var sizeArray = Object.keys(arrayIm).length
+        if (sizeArray == 0) {
+          var img1 = document.getElementById("img1")
+          $(img1).hide();
+          var img2 = document.getElementById("img2")
+          $(img2).hide();
+
+        }
+        else if (sizeArray == 1) {
+          let name = Object.keys(arrayIm)
+          if (name == 'img1') {
+            var img2 = document.getElementById("img2")
+            $(img2).hide();
+            var img1 = document.getElementById("img1")
+            $(img1).show();
+
+          } else {
+            var img1 = document.getElementById("img1")
+            $(img1).hide();
+            var img2 = document.getElementById("img2")
+            $(img2).show();
+          }
+        }
+        else {
+          for (let j in arrayIm) {
+            var img = document.getElementById(j)
+            if (img !== null)
+              img.src = arrayIm[j];
+            $(img).show();
+          }
+        }
+        document.getElementById("mes").innerHTML = messages[i % mesSize].name;
+      }
+      function func() {
+        loadPages()
+        loadDetails()
+        let time = messages[i % mesSize].legth * 1000;
+        setTimeout(() => {
+          func();
+          i++
+        }, time);
+      }
+
+      $(document).ready(function () {
+        func()
+      })
+    });//close of server.on
+  </script>
+
+</head>
+
+<body>
+
+
+  <h2 id="mes"></h2>
+  <div id=result>Press on the button to load content from template.html <br> Make sure you closed all Chrome.exe open
+    windows before running this</div>
+  <p id="p"> </p>
+  <br>
+  <div>
+    <img id="img1" width="200" height="200">
+    <img id="img2" width="200" height="200">
+  </div>
+</body>
+
+
+</html>
