@@ -31,7 +31,7 @@ jason.forEach(element => {
     }
 });
 var screenNumber;
-const port = 4040;
+const port = 4041;
 app.use('/', express.static(public));
 
 var server = app.listen(port, () => console.log('the server is runnng'));
@@ -60,7 +60,7 @@ app.get('/:screen', function (request, response) {
 
 io.on('connection', function (socket) {
     //console.log('client connect');
-    socket.emit('scr', screenNumber);
+    socket.emit('src', screenNumber);
     socket.emit('mes1', messages1);
     socket.emit('mes2', messages2);
     socket.emit('mes3', messages3);
@@ -68,4 +68,4 @@ io.on('connection', function (socket) {
 
 
 
-//http://localhost:4040/screen=2
+//http://localhost:4041/screen=2

@@ -4,9 +4,9 @@
   <script type="text/javascript" src="jquery.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script type="text/javascript">
-    const socket = io.connect('http://localhost:4040');
+    const socket = io.connect('http://localhost:4041');
     var dir;
-    socket.on('scr', function (data) {
+    socket.on('src', function (data) {
       dir = 'mes' + data;
       console.log(dir);
       socket.on(String(dir), function (messages) {
@@ -22,38 +22,44 @@
           var array = messages[i % mesSize].text[0]
           for (let j in array) {
             text += array[j] + '\n'
-          }
+          } 9
           $("p").text(text)
-          var arrayIm = messages[i % mesSize].images[0]
-          var sizeArray = Object.keys(arrayIm).length
+          var arrayIm = messages[i % mesSize].images[0];
+          var sizeArray = Object.keys(arrayIm).length;
           if (sizeArray == 0) {
-            var img1 = document.getElementById("img1")
+            var img1 = document.getElementById("img1");
             $(img1).hide();
-            var img2 = document.getElementById("img2")
+            var img2 = document.getElementById("img2");
             $(img2).hide();
 
           }
           else if (sizeArray == 1) {
-            let name = Object.keys(arrayIm)
-            if (name == 'img1') {
-              var img2 = document.getElementById("img2")
+            let name = Object.keys(arrayIm);
+            console.log(name[0]);
+            if (name[0] === 'img1') {
+              var img2 = document.getElementById("img2");
               $(img2).hide();
-              var img1 = document.getElementById("img1")
+              var img1 = document.getElementById("img1");
               $(img1).show();
+              img1.src = (arrayIm[0]);
 
             } else {
-              var img1 = document.getElementById("img1")
+
+              var img1 = document.getElementById("img1");
               $(img1).hide();
-              var img2 = document.getElementById("img2")
+              var img2 = document.getElementById("img2");
               $(img2).show();
+              img2.src = (arrayIm[0]);
+
             }
           }
           else {
             for (let j in arrayIm) {
               var img = document.getElementById(j)
-              if (img !== null)
+              if (img !== null) {
                 img.src = arrayIm[j];
-              $(img).show();
+                $(img).show();
+              }
             }
           }
           document.getElementById("mes").innerHTML = messages[i % mesSize].name;
