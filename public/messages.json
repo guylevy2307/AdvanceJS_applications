@@ -16,7 +16,7 @@
             }
         ],
         "template": "./templateA.html",
-        "legth": 4,
+        "legth": 3,
         "date": [
             {
                 "yearlyStartTime": "1/1/2021",
