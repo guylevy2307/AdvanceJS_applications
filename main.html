@@ -12,19 +12,19 @@
       socket.on(String(dir), function (messages) {
 
         i = 0
-        var mesSize = messages.length
+        var mesSize = messages[0].length
         function loadPages() {
-          let temp = messages[i % mesSize].template;
+          let temp = messages[0][i % mesSize].template;
           $("#result").load(temp);
         }
         function loadDetails() {
           var text = ''
-          var array = messages[i % mesSize].text[0]
+          var array = messages[0][i % mesSize].text[0]
           for (let j in array) {
             text += array[j] + '\n'
           } 9
           $("p").text(text)
-          var arrayIm = messages[i % mesSize].images[0];
+          var arrayIm = messages[0][i % mesSize].images[0];
           var sizeArray = Object.keys(arrayIm).length;
           if (sizeArray == 0) {
             var img1 = document.getElementById("img1");
@@ -62,12 +62,12 @@
               }
             }
           }
-          document.getElementById("mes").innerHTML = messages[i % mesSize].name;
+          document.getElementById("mes").innerHTML = messages[0][i % mesSize].name;
         }
         function func() {
-          loadPages()
-          loadDetails()
-          let time = messages[i % mesSize].legth * 1000;
+          loadPages();
+          loadDetails();
+          let time = messages[0][i % mesSize].legth * 1000;
           setTimeout(() => {
             func();
             i++

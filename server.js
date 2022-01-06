@@ -18,15 +18,14 @@ const connectUrl = 'mongodb://localhost:27017'
 const dataBaseName = 'dynamicLoading'
 var public = path.join(__dirname, 'public');
 const file = require('./public/messages.json');
-const { json } = require("body-parser");
-const { readFileSync } = require("fs");
+
 //creating messages by screen
 var messages1 = [];
 var messages2 = [];
 var messages3 = [];
 
-async function sortMess(client) {
-    const db = client.db(dataBaseName)
+async function sortMess(db) {
+
     db.collection('messages').find({ "id": /[1]/ }).toArray(function (err, result) {
         if (err) throw err;
         messages1.push(result)
@@ -39,8 +38,17 @@ async function sortMess(client) {
         if (err) throw err;
         messages3.push(result);
     });
+    console.log('Done sortting messeges!')
 }
-
+async function uploadMess(db) {
+    db.collection('messages').insertMany(file, (error) => {
+        if (error) {
+            return console.log(error)
+        }
+        console.log('Done insert all json')
+    })
+    sortMess(db);
+}
 //upload messges to mongoDB
 MongoClient.connect(
     connectUrl,
@@ -54,15 +62,7 @@ MongoClient.connect(
         console.log('Start delete')
         db.collection('messages').deleteMany({});
         console.log('Done delete')
-
-        db.collection('messages').insertMany(file, (error) => {
-            if (error) {
-                return console.log(error)
-            }
-        })
-        console.log('Done insert all json')
-        sortMess(client);
-        console.log('Done sortting messeges!')
+        uploadMess(db);
     },
 )
 
@@ -83,7 +83,6 @@ app.get('/favicon.ico', function (req, res) {
 app.get('/screen=:id', function (request, response) {
 
     screenNumber = (request.params.id);
-    console.log(request.params.id);
     if (screenNumber != 0) {
         if (screenNumber % 3 == 0) {
             screenNumber = 3;
@@ -99,14 +98,51 @@ app.get('/screen=:id', function (request, response) {
 
 //return the client the JSON of messages 
 io.on('connection', function (socket) {
+    MongoClient.connect(
+        connectUrl,
+        { useNewUrlParser: true },
+        (error, client) => {
+            if (error) {
+                return console.log("Can't connect to DB!")
+            }
+            //conectted
+            const db = client.db(dataBaseName)
+            db.collection('logFile').insertOne({
+                socketId: socket.id,
+                date: new Date().toLocaleString(),
+                screen: screenNumber,
+            });
+            db.collection('connect').insertOne({
+                socketId: socket.id,
+                date: new Date().toLocaleString(),
+                screen: screenNumber,
+            });
+        },
+    )
+
     console.log('client connect');
-    console.log(messages1);
     socket.emit('src', screenNumber);
     socket.emit('mes1', messages1);
     socket.emit('mes2', messages2);
     socket.emit('mes3', messages3);
+    socket.on('disconnect', function () {
 
+        MongoClient.connect(
+            connectUrl,
+            { useNewUrlParser: true },
+            (error, client) => {
+                if (error) {
+                    return console.log("Can't connect to DB!")
+                }
+                //conectted
+                const db = client.db(dataBaseName)
 
+                db.collection('connect').deleteOne({
+                    socketId: socket.id
+                });
+            },
+        )
+    });
 });
 
 
