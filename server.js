@@ -1,14 +1,22 @@
-/*var express = require("express");
-var app = express(); // express.createServer();
-var path = require('path');
-var public = path.join(__dirname, 'public');
-const jason = require('./public/messages.json');
-app.use('/', express.static(public));*/
 
+var bodyParser = require('body-parser');
 var express = require("express");
 var path = require('path');
 var app = express();
 var socket = require('socket.io');
+var session = require("express-session");
+
+//app config
+// Parse URL-encoded bodies (as sent by HTML forms)
+app.use(express.urlencoded());
+
+// Parse JSON bodies (as sent by API clients)
+app.use(express.json());
+
+app.use(session({
+    key: "admin",
+    secret: "admin"
+}));
 
 
 //mongo config
@@ -18,6 +26,7 @@ const connectUrl = 'mongodb://localhost:27017'
 const dataBaseName = 'dynamicLoading'
 var public = path.join(__dirname, 'public');
 const file = require('./public/messages.json');
+const { Console } = require("console");
 
 //creating messages by screen
 var messages1 = [];
@@ -57,17 +66,23 @@ MongoClient.connect(
         if (error) {
             return console.log("Can't connect to DB!")
         }
+        //save database reference
         const db = client.db(dataBaseName)
 
         console.log('Start delete')
         db.collection('messages').deleteMany({});
         console.log('Done delete')
+        db.collection('admin').deleteMany({});
+        db.collection('admin').insertOne({
+            email: "admin@gmail.com",
+            password: "admin1"
+        })
         uploadMess(db);
     },
 )
 
 var screenNumber;
-const port = 4041;
+const port = 4042;
 app.use('/', express.static(public));
 
 var server = app.listen(port, () => console.log('the server is runnng'));
@@ -90,11 +105,61 @@ app.get('/screen=:id', function (request, response) {
         else {
             screenNumber = screenNumber % 3
         };
+        response.sendFile(__dirname + "/main.html");
+    }
+    //try to log to admin page
+    else {
+
+        if (request.session.admin) {
+            response.sendFile(__dirname + "/admin.html");
+        }
+        else {
+            response.sendFile(__dirname + "/login.html");
+        }
     }
 
-
-    response.sendFile(__dirname + "/main.html");
 });
+//admin screen
+app.post("/screen=0", function (req, res) {
+    var email = req.body.email;
+    var password = req.body.password;
+    var htmlData = 'Hello: ' + email + "  " + password;
+    console.log(htmlData)
+    MongoClient.connect(
+        connectUrl,
+        { useNewUrlParser: true },
+        (error, client) => {
+            if (error) {
+                return console.log("Can't connect to DB!")
+            }
+            //save database reference
+            const db = client.db(dataBaseName)
+            db.collection('admin').findOne({ "email": email, "password": password }, function (error, admin) {
+                if (error) throw error;
+                if (admin != "") {
+                    req.session.admin = admin;
+
+                }
+                console.log(admin);
+                res.send(admin);
+
+            });
+        },
+    )
+
+})
+app.get('/screen=0/admin', function (req, res) {
+    if (req.session.admin) {
+        res.sendFile(__dirname + "/admin.html");
+    }
+    else {
+        res.sendFile(__dirname + "/login.html");
+    }
+    res.sendFile(__dirname + "/admin.html");
+
+})
+
+
 
 //return the client the JSON of messages 
 io.on('connection', function (socket) {
@@ -147,4 +212,7 @@ io.on('connection', function (socket) {
 
 
 
-//http://localhost:4041/screen=2
+
+
+//http://localhost:4042/screen=2
+//http://localhost:4042/screen=0
