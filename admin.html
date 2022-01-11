@@ -3,70 +3,179 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title> Admin Login Page </title>
+    <title> Admin Dashbord Page </title>
+    <script nonce="undefined" src="https://cdn.zinggrid.com/zinggrid.min.js"></script>
+
     <style>
-        Body {
-            font-family: Calibri, Helvetica, sans-serif;
-            background-color: pink;
+        .accordion-flex-layout {
+            --zg-cell-vertical-align: top;
         }
 
-        button {
-            background-color: #4CAF50;
-            width: 100%;
-            color: orange;
-            padding: 15px;
-            margin: 10px 0px;
-            border: none;
+        /* target accordion for mobile and display as column*/
+
+        zing-grid[viewport="mobile"] .accordion-container {
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        /* Main accordion styling */
+
+        .accordion input {
+            display: none;
+        }
+
+        .accordion label {
+            position: relative;
+            display: block;
+            background: #eee;
+            border-radius: .25em;
             cursor: pointer;
+            margin-bottom: .125em;
+            padding: .75rem 1em;
+            z-index: 20;
         }
 
-        form {
-            border: 3px solid #f1f1f1;
+        .accordion label:hover {
+            background: #ccc;
         }
 
-        input[type=text],
-        input[type=password] {
-            width: 100%;
-            margin: 8px 0;
-            padding: 12px 20px;
-            display: inline-block;
-            border: 2px solid green;
-            box-sizing: border-box;
+        .accordion input:checked+label {
+            background: #ccc;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+            color: white;
+            margin-bottom: 0;
         }
 
-        button:hover {
-            opacity: 0.7;
+        .accordion label::after {
+            content: '+';
+            position: absolute;
+            right: 5px;
         }
 
-        .cancelbtn {
-            width: auto;
-            padding: 10px 18px;
-            margin: 10px 5px;
+        .accordion input:checked+label::after {
+            content: '-';
+            position: absolute;
+            right: 5px;
         }
 
+        .accordion article {
+            background: #f7f7f7;
+            /* 
+	 * max-height allows height transition in CSS 
+	 * use height: 0px; otherwise
+	 */
+            max-height: 0px;
+            overflow: hidden;
+            z-index: 10;
+            opacity: 0;
+            /* allow closing transition */
+            -webkit-transition: all 0.7s ease;
+            -moz-transition: all 0.7s ease;
+            -o-transition: all 0.7s ease;
+            transition: all 0.7s ease;
+        }
 
-        .container {
-            padding: 25px;
-            background-color: lightblue;
+        .accordion article {
+            padding: 1em;
+            cursor: default;
+        }
+
+        .accordion input:checked article {}
+
+        .accordion input:checked~article {
+            border-bottom-left-radius: .25em;
+            border-bottom-right-radius: .25em;
+            /* 
+	 * max-height allows height transition in CSS 
+	 * use height: auto; otherwise
+	 */
+            max-height: 500px;
+            margin-bottom: .125em;
+            opacity: 1;
+            /* allow opening transition */
+            -webkit-transition: all 1s ease;
+            /* Safari */
+            -moz-transition: all 1s ease;
+            -o-transition: all 1s ease;
+            transition: all 1s ease;
         }
     </style>
 </head>
 
+
+
 <body>
-    <center>
-        <h1> Admin Page </h1>
-    </center>
-
-    <div class="container">
-        <label>Email: </label>
-
-        <label>Password: </label>
+    <zing-grid role="grid" viewport="tablet-portrait" caption="All Messages" sort search viewport-stop>
+        <zg-data src="http://localhost:4040/messages">
 
 
 
+        </zg-data>
+        <zg-colgroup slot="gridcolgroup">
+            <zg-column index="name"></zg-column>
+            <zg-column type="element" index="text">
+                <template>
+                    <h4>Text in messages:</h4>
+                    <ul>
+                        <li>[[index.text.0.text1]] </li>
+                        <li>[[index.text.0.text2]] </li>
+                        <li>[[index.text.0.text3]] </li>
+                        <li>[[index.text.0.text4]] </li>
+                        <li>[[index.text.0.text5]] </li>
+                        <li>[[index.text.0.text6]] </li>
+                        <li>[[index.text.0.text7]] </li>
+                        <li>[[index.text.0.text8]] </li>
+                        <li>[[index.text.0.text9]] </li>
+                        <li>[[index.text.0.text10]] </li>
+                    </ul>
+                </template>
+            </zg-column>
+            <zg-column index="template"></zg-column>
+            <zg-column index="images">
+                <h4>Image in messages:</h4>
+                <ul>
+                    <li>[[index.images.0.img1]] </li>
+                    <li>[[index.images.0.img2]] </li>
+                </ul>
+            </zg-column>
+            <zg-column index="id"></zg-column>
+            <zg-column index="editor" type="editor"></zg-column>
+        </zg-colgroup>
+    </zing-grid>
+    <zing-grid role="grid" viewport="tablet-portrait" caption="All Admin details" sort search viewport-stop>
+        <zg-data src="http://localhost:4040/adminUser">
 
-    </div>
+
+
+        </zg-data>
+        <zg-colgroup slot="gridcolgroup">
+            <zg-column index="email"></zg-column>
+            <zg-column index="password"></zg-column>
+
+        </zg-colgroup>
+    </zing-grid>
+
 
 </body>
+<script>
+
+    function _fncStringReference(record) {
+        return {
+            // to change the read method of the action to POST
+            method: 'POST',
+            // takes a JSON packet to be sent to the server in place of the action
+            // in this case user_id is always one.
+            body: { user_id: 1 },
+            requestType: 'application/json',
+            exclude: '',
+            headers: { "Authorization": "Basic super-secrete-key" },
+            mode: 'no-cors',
+            responseType: '',
+            src: '',
+            queryString: ''
+        }
+    }
+</script>
 
 </html>

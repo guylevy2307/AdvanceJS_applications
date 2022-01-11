@@ -4,7 +4,7 @@
   <script type="text/javascript" src="jquery.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script type="text/javascript">
-    const socket = io.connect('http://localhost:4042');
+    const socket = io.connect('http://localhost:4040');
     var dir;
     socket.on('src', function (data) {
       dir = 'mes' + data;
@@ -22,7 +22,7 @@
           var array = messages[0][i % mesSize].text[0]
           for (let j in array) {
             text += array[j] + '\n'
-          } 9
+          }
           $("p").text(text)
           var arrayIm = messages[0][i % mesSize].images[0];
           var sizeArray = Object.keys(arrayIm).length;

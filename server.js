@@ -82,10 +82,10 @@ MongoClient.connect(
 )
 
 var screenNumber;
-const port = 4042;
+const port = 4040;
 app.use('/', express.static(public));
 
-var server = app.listen(port, () => console.log('the server is runnng'));
+var server = app.listen(port, () => console.log('the server is runnng on port: ${port}'));
 var io = socket(server);
 
 
@@ -111,10 +111,10 @@ app.get('/screen=:id', function (request, response) {
     else {
 
         if (request.session.admin) {
-            response.sendFile(__dirname + "/admin.html");
+            response.redirect('../admin');
         }
         else {
-            response.sendFile(__dirname + "/login.html");
+            response.redirect('../login');
         }
     }
 
@@ -123,8 +123,6 @@ app.get('/screen=:id', function (request, response) {
 app.post("/screen=0", function (req, res) {
     var email = req.body.email;
     var password = req.body.password;
-    var htmlData = 'Hello: ' + email + "  " + password;
-    console.log(htmlData)
     MongoClient.connect(
         connectUrl,
         { useNewUrlParser: true },
@@ -140,7 +138,6 @@ app.post("/screen=0", function (req, res) {
                     req.session.admin = admin;
 
                 }
-                console.log(admin);
                 res.send(admin);
 
             });
@@ -148,17 +145,59 @@ app.post("/screen=0", function (req, res) {
     )
 
 })
-app.get('/screen=0/admin', function (req, res) {
+
+app.get('/admin', function (req, res) {
     if (req.session.admin) {
         res.sendFile(__dirname + "/admin.html");
     }
     else {
-        res.sendFile(__dirname + "/login.html");
+        console.log(" not log as admin")
+        res.redirect('../login');
     }
-    res.sendFile(__dirname + "/admin.html");
+})
+app.get('/messages', function (req, res) {
+
+    MongoClient.connect(
+        connectUrl,
+        { useNewUrlParser: true },
+        (error, client) => {
+            if (error) {
+                return console.log("Can't connect to DB!")
+            }
+            //save database reference
+            const db = client.db(dataBaseName)
+            db.collection('messages').find({}).toArray
+                (function (err, docs) {
+                    res.send(docs);
+                });
+        },
+    )
+
+})
+app.get('/adminUser', function (req, res) {
+
+    MongoClient.connect(
+        connectUrl,
+        { useNewUrlParser: true },
+        (error, client) => {
+            if (error) {
+                return console.log("Can't connect to DB!")
+            }
+            //save database reference
+            const db = client.db(dataBaseName)
+            db.collection('admin').find({}).toArray
+                (function (err, docs) {
+                    res.send(docs);
+                });
+        },
+    )
 
 })
 
+app.get('/login', function (req, res) {
+
+    res.sendFile(__dirname + "/login.html");
+})
 
 
 //return the client the JSON of messages 
@@ -214,5 +253,5 @@ io.on('connection', function (socket) {
 
 
 
-//http://localhost:4042/screen=2
-//http://localhost:4042/screen=0
+//http://localhost:4040/screen=2
+//http://localhost:4040/screen=0
