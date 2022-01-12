@@ -70,6 +70,8 @@
 
 <body>
     <div id='showData'></div>
+    <div id='showClientConnected'></div>
+    <div id='showClientDisconnected'></div>
     <div id='showAdmin'></div>
 </body>
 <script>
@@ -78,7 +80,7 @@
 
     // Initiate request.
     oXHR.onreadystatechange = reportStatus;
-    oXHR.open("GET", "http://localhost:4040/messages", true);  // get json file.
+    oXHR.open("GET", "http://localhost:4042/messages", true);  // get json file.
     oXHR.send();
 
     function reportStatus() {
@@ -101,6 +103,9 @@
                     t += `<li value=${i} onclick="setMes('${name}',' ${array[j]}',${i})"> ${array[j]} </li> ` + '\n'
                     i++;
                 }
+                if (i == 1) {
+                    t += "no text"
+                }
                 return `
                     <h4> Presentet text in ad:</h4 >
                         <ul class="text-list">
@@ -113,6 +118,8 @@
                     <div class="info" >
                     <h2 class="name">  Message id: ${mes.name} </h2>
                     ${textCreate(mes.name, mes.text)}
+                    <h3 class="name"> Screen id: ${mes.id} </h3>
+                    <h3 class="name"> Duration time (second): <span onclick="editLen('${mes.name}')"> ${mes.legth} </span></h3>
                      <button onclick="deleteMess('${mes.name}')"  > Delete </button>
                     </div >
                     `
@@ -129,9 +136,9 @@
     function setMes(name, text, place) {
         text = text.replaceAll('+', ' ');
 
-        do {
-            let newText = prompt("Please enter new text:", text);
-        } while (newText != text);
+
+        let newText = prompt("Please enter new text:", text);
+
         $.ajax({
             url: "/changeMess",
             method: "POST",
@@ -170,6 +177,25 @@
             }
         });
     }
+    function editLen(name) {
+        let newTime = prompt("Please enter new duration :");
+        $.ajax({
+            url: "/editTime",
+            method: "POST",
+            data: { name: name, time: newTime },
+            success: function (res) {
+
+                if (res != "ok") {
+                    alert("worng connection");
+
+                } else {
+                    alert("Change!");
+                    document.location.reload(true)
+                }
+
+            }
+        });
+    }
 </script>
 <script>
 
@@ -177,7 +203,7 @@
 
     // Initiate request.
     oXHR2.onreadystatechange = reportStatus;
-    oXHR2.open("GET", "http://localhost:4040/adminUser", true);  // get json file.
+    oXHR2.open("GET", "http://localhost:4042/adminUser", true);  // get json file.
     oXHR2.send();
     function reportStatus() {
         if (oXHR2.readyState == 4) {		// Check if request is complete.
@@ -189,7 +215,7 @@
              <div class="info" >   
                  <h2>Email: <span onclick="setEmail('${adminJson[0].email}')">  ${adminJson[0].email}</span> </h2>
                  <h2>Password: <span onclick="setPass('${adminJson[0].password}')"> ${adminJson[0].password}</span> </h2>
-                 <button >Edit</button>
+                 
 
           </div>
         `
@@ -247,6 +273,65 @@
 </script>
 
 <script>
+    var oXHR3 = new XMLHttpRequest();
+
+    // Initiate request.
+    oXHR3.onreadystatechange = reportStatus;
+    oXHR3.open("GET", "http://localhost:4042/connectedUser", true);  // get json file.
+    oXHR3.send();
+
+    function reportStatus() {
+        if (oXHR3.readyState == 4) {		// Check if request is complete.
+            const json = JSON.parse(this.responseText);
+            function messageTamplate(mes) {
+                return `
+                <div class="info" >
+                <h2 class="name">  Socked id: ${mes.socketId} </h2>
+                <h3 class="name"> View Screen: ${mes.screen} </h3>
+                <h3 class="name"> Connected in:  ${mes.date} </h3>
+                </div >
+                `
+            }
+            document.getElementById('showClientConnected').innerHTML = `
+                <h1 class="app-title" > Total Connected clients(${json.length}): </h1 >
+                    ${json.map(messageTamplate).join('')}
+    
+        
+        `
+        }
+    }
+
+
+</script>
+<script>
+    var oXHR4 = new XMLHttpRequest();
+
+    // Initiate request.
+    oXHR4.onreadystatechange = reportStatus;
+    oXHR4.open("GET", "http://localhost:4042/disconnectedUser", true);  // get json file.
+    oXHR4.send();
+
+    function reportStatus() {
+        if (oXHR3.readyState == 4) {		// Check if request is complete.
+            const json = JSON.parse(this.responseText);
+            function messageTamplate(mes) {
+                return `
+                <div class="info" >
+                <h2 class="name">  Socked id: ${mes.socketId} </h2>
+                <h3 class="name"> Disconnected in:  ${mes.date} </h3>
+                </div >
+                `
+            }
+            document.getElementById('showClientDisconnected').innerHTML = `
+                <h1 class="app-title" > Disconnected clients(${json.length}): </h1 >
+                    ${json.map(messageTamplate).join('')}
+    
+        
+        `
+        }
+    }
+
+
 </script>
 
 </html>

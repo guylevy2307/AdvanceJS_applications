@@ -34,7 +34,9 @@ var messages2 = [];
 var messages3 = [];
 
 async function sortMess(db) {
-
+    messages1 = [];
+    messages2 = [];
+    messages3 = [];
     db.collection('messages').find({ "id": /[1]/ }).toArray(function (err, result) {
         if (err) throw err;
         messages1.push(result)
@@ -58,7 +60,7 @@ async function uploadMess(db) {
     })
     sortMess(db);
 }
-//upload messges to mongoDB
+//upload messges to mongoDB in the first time the server start
 MongoClient.connect(
     connectUrl,
     { useNewUrlParser: true },
@@ -82,45 +84,16 @@ MongoClient.connect(
 )
 
 var screenNumber;
-const port = 4040;
+const port = 4042;
 app.use('/', express.static(public));
 
 var server = app.listen(port, () => console.log(`the server is runnng on port: ${port}`));
 var io = socket(server);
 
 
-app.get('/favicon.ico', function (req, res) {
-    res.status(204)
-    res.end()
-})
 
-//save the screen number
-app.get('/screen=:id', function (request, response) {
+//********************************post method in server****************************************//
 
-    screenNumber = (request.params.id);
-    if (screenNumber != 0) {
-        if (screenNumber % 3 == 0) {
-            screenNumber = 3;
-        }
-        else {
-            screenNumber = screenNumber % 3
-        };
-        response.sendFile(__dirname + "/main.html");
-    }
-    //try to log to admin page
-    else {
-
-        if (request.session.admin) {
-            response.redirect('../admin');
-        }
-        else {
-            response.redirect('../login');
-        }
-    }
-
-});
-//post method in server
-//admin screen
 app.post("/screen=0", function (req, res) {
     var email = req.body.email;
     var password = req.body.password;
@@ -151,7 +124,6 @@ app.post("/changeMess", function (req, res) {
     var text = req.body.text;
     var index = req.body.place;
     let place = "text.0.text" + index;
-    console.log(place);
     MongoClient.connect(
         connectUrl,
         { useNewUrlParser: true },
@@ -162,12 +134,31 @@ app.post("/changeMess", function (req, res) {
             //save database reference
             const db = client.db(dataBaseName)
             db.collection('messages').findOneAndUpdate({ "name": name }, { $set: { [place]: text } });
+            sortMess(db);
             res.send("ok");
         },
     )
 
 })
+app.post("/editTime", function (req, res) {
+    var name = req.body.name;
+    var time = req.body.time;
+    MongoClient.connect(
+        connectUrl,
+        { useNewUrlParser: true },
+        (error, client) => {
+            if (error) {
+                return console.log("Can't connect to DB!")
+            }
+            //save database reference
+            const db = client.db(dataBaseName)
+            db.collection('messages').findOneAndUpdate({ "name": name }, { $set: { legth: time } });
+            sortMess(db);
+            res.send("ok");
+        },
+    )
 
+})
 app.post("/deleteMes", function (req, res) {
     console.log("try to delete")
     var name = req.body.name;
@@ -222,7 +213,8 @@ app.post("/changeAdminPassword", function (req, res) {
     )
 
 })
-//get method in server
+
+//********************************get method in server****************************************//
 app.get('/admin', function (req, res) {
     if (req.session.admin) {
         res.sendFile(__dirname + "/admin.html");
@@ -276,9 +268,94 @@ app.get('/login', function (req, res) {
 
     res.sendFile(__dirname + "/login.html");
 })
+app.get('/logFileUser', function (req, res) {
 
+    MongoClient.connect(
+        connectUrl,
+        { useNewUrlParser: true },
+        (error, client) => {
+            if (error) {
+                return console.log("Can't connect to DB!")
+            }
+            //save database reference
+            const db = client.db(dataBaseName)
+            db.collection('logFile').find({}).toArray
+                (function (err, docs) {
+                    res.send(docs);
+                });
+        },
+    )
 
-//socket in server
+})
+app.get('/disconnectedUser', function (req, res) {
+
+    MongoClient.connect(
+        connectUrl,
+        { useNewUrlParser: true },
+        (error, client) => {
+            if (error) {
+                return console.log("Can't connect to DB!")
+            }
+            //save database reference
+            const db = client.db(dataBaseName)
+            db.collection('disconnected').find({}).toArray
+                (function (err, docs) {
+                    res.send(docs);
+                });
+        },
+    )
+
+})
+app.get('/connectedUser', function (req, res) {
+
+    MongoClient.connect(
+        connectUrl,
+        { useNewUrlParser: true },
+        (error, client) => {
+            if (error) {
+                return console.log("Can't connect to DB!")
+            }
+            //save database reference
+            const db = client.db(dataBaseName)
+            db.collection('connect').find({}).toArray
+                (function (err, docs) {
+                    res.send(docs);
+                });
+        },
+    )
+
+})
+app.get('/favicon.ico', function (req, res) {
+    res.status(204)
+    res.end()
+})
+
+//save the screen number
+app.get('/screen=:id', function (request, response) {
+
+    screenNumber = (request.params.id);
+    if (screenNumber != 0) {
+        if (screenNumber % 3 == 0) {
+            screenNumber = 3;
+        }
+        else {
+            screenNumber = screenNumber % 3
+        };
+        response.sendFile(__dirname + "/main.html");
+    }
+    //try to log to admin page
+    else {
+
+        if (request.session.admin) {
+            response.redirect('../admin');
+        }
+        else {
+            response.redirect('../login');
+        }
+    }
+
+});
+//********************************socket.io method in server****************************************//
 io.on('connection', function (socket) {
     MongoClient.connect(
         connectUrl,
@@ -322,6 +399,10 @@ io.on('connection', function (socket) {
                 db.collection('connect').deleteOne({
                     socketId: socket.id
                 });
+                db.collection('disconnected').insertOne({
+                    socketId: socket.id,
+                    date: new Date().toLocaleString(),
+                });
             },
         )
     });
@@ -331,5 +412,5 @@ io.on('connection', function (socket) {
 
 
 
-//http://localhost:4040/screen=2
-//http://localhost:4040/screen=0
+//http://localhost:4042/screen=2
+//http://localhost:4042/screen=0
