@@ -172,6 +172,7 @@ app.post("/deleteMes", function (req, res) {
             //save database reference
             const db = client.db(dataBaseName)
             db.collection('messages').findOneAndDelete({ "name": name });
+            sortMess(db);
             res.send("ok");
         },
     )
