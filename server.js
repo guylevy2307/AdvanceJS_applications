@@ -85,7 +85,7 @@ var screenNumber;
 const port = 4040;
 app.use('/', express.static(public));
 
-var server = app.listen(port, () => console.log('the server is runnng on port: ${port}'));
+var server = app.listen(port, () => console.log(`the server is runnng on port: ${port}`));
 var io = socket(server);
 
 
@@ -119,6 +119,7 @@ app.get('/screen=:id', function (request, response) {
     }
 
 });
+//post method in server
 //admin screen
 app.post("/screen=0", function (req, res) {
     var email = req.body.email;
@@ -145,16 +146,93 @@ app.post("/screen=0", function (req, res) {
     )
 
 })
+app.post("/changeMess", function (req, res) {
+    var name = req.body.name;
+    var text = req.body.text;
+    var index = req.body.place;
+    let place = "text.0.text" + index;
+    console.log(place);
+    MongoClient.connect(
+        connectUrl,
+        { useNewUrlParser: true },
+        (error, client) => {
+            if (error) {
+                return console.log("Can't connect to DB!")
+            }
+            //save database reference
+            const db = client.db(dataBaseName)
+            db.collection('messages').findOneAndUpdate({ "name": name }, { $set: { [place]: text } });
+            res.send("ok");
+        },
+    )
 
+})
+
+app.post("/deleteMes", function (req, res) {
+    console.log("try to delete")
+    var name = req.body.name;
+    MongoClient.connect(
+        connectUrl,
+        { useNewUrlParser: true },
+        (error, client) => {
+            if (error) {
+                return console.log("Can't connect to DB!")
+            }
+            //save database reference
+            const db = client.db(dataBaseName)
+            db.collection('messages').findOneAndDelete({ "name": name });
+            res.send("ok");
+        },
+    )
+
+})
+app.post("/changeAdminEmail", function (req, res) {
+    var oldEmail = req.body.oldEmail;
+    var newEmail = req.body.newEmail;
+    MongoClient.connect(
+        connectUrl,
+        { useNewUrlParser: true },
+        (error, client) => {
+            if (error) {
+                return console.log("Can't connect to DB!")
+            }
+            //save database reference
+            const db = client.db(dataBaseName)
+            db.collection('admin').findOneAndUpdate({ email: oldEmail }, { $set: { email: newEmail } });
+            res.send("ok");
+        },
+    )
+
+})
+app.post("/changeAdminPassword", function (req, res) {
+    var oldPassword = req.body.oldPassword;
+    var newPassword = req.body.newPassword;
+    MongoClient.connect(
+        connectUrl,
+        { useNewUrlParser: true },
+        (error, client) => {
+            if (error) {
+                return console.log("Can't connect to DB!")
+            }
+            //save database reference
+            const db = client.db(dataBaseName)
+            db.collection('messages').findOneAndUpdate({ password: oldPassword }, { $set: { password: newPassword } });
+            res.send("ok");
+        },
+    )
+
+})
+//get method in server
 app.get('/admin', function (req, res) {
     if (req.session.admin) {
         res.sendFile(__dirname + "/admin.html");
     }
     else {
-        console.log(" not log as admin")
+        console.log(" not log as admin");
         res.redirect('../login');
     }
 })
+
 app.get('/messages', function (req, res) {
 
     MongoClient.connect(
@@ -200,7 +278,7 @@ app.get('/login', function (req, res) {
 })
 
 
-//return the client the JSON of messages 
+//socket in server
 io.on('connection', function (socket) {
     MongoClient.connect(
         connectUrl,

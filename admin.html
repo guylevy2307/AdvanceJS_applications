@@ -3,179 +3,250 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title> Admin Dashbord Page </title>
-    <script nonce="undefined" src="https://cdn.zinggrid.com/zinggrid.min.js"></script>
 
     <style>
-        .accordion-flex-layout {
-            --zg-cell-vertical-align: top;
+        body {
+            font-family: sans-serif;
+            background-color: #DEDEDE;
+            color: #333;
+            padding: 20px 0 28px 0;
+            margin: 0;
         }
 
-        /* target accordion for mobile and display as column*/
-
-        zing-grid[viewport="mobile"] .accordion-container {
-            flex-direction: column;
-            flex-grow: 1;
+        img {
+            max-width: 100%;
+            height: auto;
         }
 
-        /* Main accordion styling */
-
-        .accordion input {
-            display: none;
+        .app-title {
+            text-align: center;
+            font-weight: normal;
+            font-size: 2.6rem;
         }
 
-        .accordion label {
-            position: relative;
-            display: block;
-            background: #eee;
-            border-radius: .25em;
-            cursor: pointer;
-            margin-bottom: .125em;
-            padding: .75rem 1em;
-            z-index: 20;
-        }
-
-        .accordion label:hover {
-            background: #ccc;
-        }
-
-        .accordion input:checked+label {
-            background: #ccc;
-            border-bottom-right-radius: 0;
-            border-bottom-left-radius: 0;
-            color: white;
-            margin-bottom: 0;
-        }
-
-        .accordion label::after {
-            content: '+';
-            position: absolute;
-            right: 5px;
-        }
-
-        .accordion input:checked+label::after {
-            content: '-';
-            position: absolute;
-            right: 5px;
-        }
-
-        .accordion article {
-            background: #f7f7f7;
-            /* 
-	 * max-height allows height transition in CSS 
-	 * use height: 0px; otherwise
-	 */
-            max-height: 0px;
+        .info {
+            max-width: 650px;
+            padding: 20px;
+            margin: 30px auto;
+            background-color: #FFF;
+            box-shadow: 3px 3px 3px rgba(0, 0, 0, .1);
             overflow: hidden;
-            z-index: 10;
-            opacity: 0;
-            /* allow closing transition */
-            -webkit-transition: all 0.7s ease;
-            -moz-transition: all 0.7s ease;
-            -o-transition: all 0.7s ease;
-            transition: all 0.7s ease;
         }
 
-        .accordion article {
-            padding: 1em;
-            cursor: default;
+        .info h4 {
+            margin: 0 0 6px 0;
         }
 
-        .accordion input:checked article {}
 
-        .accordion input:checked~article {
-            border-bottom-left-radius: .25em;
-            border-bottom-right-radius: .25em;
-            /* 
-	 * max-height allows height transition in CSS 
-	 * use height: auto; otherwise
-	 */
-            max-height: 500px;
-            margin-bottom: .125em;
-            opacity: 1;
-            /* allow opening transition */
-            -webkit-transition: all 1s ease;
-            /* Safari */
-            -moz-transition: all 1s ease;
-            -o-transition: all 1s ease;
-            transition: all 1s ease;
+
+        .name {
+            font-size: 2rem;
+            font-weight: normal;
+            margin: 0 0 1rem 0;
+        }
+
+        .species {
+            font-size: .9rem;
+            color: #888;
+            vertical-align: middle;
+        }
+
+        .text-list {
+            margin: 0;
+            padding: 0;
+            position: relative;
+            left: 17px;
+            font-size: .85rem;
+            line-height: 1.5;
         }
     </style>
+    <script type="text/javascript" src="jquery.js"></script>
+
 </head>
 
 
 
 <body>
-    <zing-grid role="grid" viewport="tablet-portrait" caption="All Messages" sort search viewport-stop>
-        <zg-data src="http://localhost:4040/messages">
-
-
-
-        </zg-data>
-        <zg-colgroup slot="gridcolgroup">
-            <zg-column index="name"></zg-column>
-            <zg-column type="element" index="text">
-                <template>
-                    <h4>Text in messages:</h4>
-                    <ul>
-                        <li>[[index.text.0.text1]] </li>
-                        <li>[[index.text.0.text2]] </li>
-                        <li>[[index.text.0.text3]] </li>
-                        <li>[[index.text.0.text4]] </li>
-                        <li>[[index.text.0.text5]] </li>
-                        <li>[[index.text.0.text6]] </li>
-                        <li>[[index.text.0.text7]] </li>
-                        <li>[[index.text.0.text8]] </li>
-                        <li>[[index.text.0.text9]] </li>
-                        <li>[[index.text.0.text10]] </li>
-                    </ul>
-                </template>
-            </zg-column>
-            <zg-column index="template"></zg-column>
-            <zg-column index="images">
-                <h4>Image in messages:</h4>
-                <ul>
-                    <li>[[index.images.0.img1]] </li>
-                    <li>[[index.images.0.img2]] </li>
-                </ul>
-            </zg-column>
-            <zg-column index="id"></zg-column>
-            <zg-column index="editor" type="editor"></zg-column>
-        </zg-colgroup>
-    </zing-grid>
-    <zing-grid role="grid" viewport="tablet-portrait" caption="All Admin details" sort search viewport-stop>
-        <zg-data src="http://localhost:4040/adminUser">
-
-
-
-        </zg-data>
-        <zg-colgroup slot="gridcolgroup">
-            <zg-column index="email"></zg-column>
-            <zg-column index="password"></zg-column>
-
-        </zg-colgroup>
-    </zing-grid>
-
-
+    <div id='showData'></div>
+    <div id='showAdmin'></div>
 </body>
 <script>
 
-    function _fncStringReference(record) {
-        return {
-            // to change the read method of the action to POST
-            method: 'POST',
-            // takes a JSON packet to be sent to the server in place of the action
-            // in this case user_id is always one.
-            body: { user_id: 1 },
-            requestType: 'application/json',
-            exclude: '',
-            headers: { "Authorization": "Basic super-secrete-key" },
-            mode: 'no-cors',
-            responseType: '',
-            src: '',
-            queryString: ''
+    var oXHR = new XMLHttpRequest();
+
+    // Initiate request.
+    oXHR.onreadystatechange = reportStatus;
+    oXHR.open("GET", "http://localhost:4040/messages", true);  // get json file.
+    oXHR.send();
+
+    function reportStatus() {
+        if (oXHR.readyState == 4) {		// Check if request is complete.
+            const json = JSON.parse(this.responseText);
+            const data = this.responseText;
+            function retiveText(text) {
+                t = ""
+                var array = text[0]
+                for (let j in array) {
+                    t += array[j] + '+'
+                }
+                return t;
+            }
+            function textCreate(name, text) {
+                t = ` `
+                i = 1;
+                var array = text[0]
+                for (let j in array) {
+                    t += `<li value=${i} onclick="setMes('${name}',' ${array[j]}',${i})"> ${array[j]} </li> ` + '\n'
+                    i++;
+                }
+                return `
+                    <h4> Presentet text in ad:</h4 >
+                        <ul class="text-list">
+                           ${t}
+                        </ul>
+                `
+            }
+            function messageTamplate(mes) {
+                return `
+                    <div class="info" >
+                    <h2 class="name">  Message id: ${mes.name} </h2>
+                    ${textCreate(mes.name, mes.text)}
+                     <button onclick="deleteMess('${mes.name}')"  > Delete </button>
+                    </div >
+                    `
+            }
+            document.getElementById('showData').innerHTML = `
+                    <h1 class="app-title" > Total Messages(${json.length}): </h1 >
+                        ${json.map(messageTamplate).join('')}
+        
+            
+            `
         }
     }
+
+    function setMes(name, text, place) {
+        text = text.replaceAll('+', ' ');
+
+        do {
+            let newText = prompt("Please enter new text:", text);
+        } while (newText != text);
+        $.ajax({
+            url: "/changeMess",
+            method: "POST",
+            data: { name: name, text: newText, place: place },
+            success: function (res) {
+                if (res != "ok") {
+                    alert("worng connection");
+
+                } else {
+                    alert("Change!");
+                    document.location.reload(true)
+                }
+
+            }
+        });
+
+
+        return false;
+    }
+
+    function deleteMess(name) {
+        $.ajax({
+            url: "/deleteMes",
+            method: "POST",
+            data: { name: name },
+            success: function (res) {
+
+                if (res != "ok") {
+                    alert("worng connection");
+
+                } else {
+                    alert("Delete!");
+                    document.location.reload(true)
+                }
+
+            }
+        });
+    }
+</script>
+<script>
+
+    var oXHR2 = new XMLHttpRequest();
+
+    // Initiate request.
+    oXHR2.onreadystatechange = reportStatus;
+    oXHR2.open("GET", "http://localhost:4040/adminUser", true);  // get json file.
+    oXHR2.send();
+    function reportStatus() {
+        if (oXHR2.readyState == 4) {		// Check if request is complete.
+            const adminJson = JSON.parse(this.responseText);
+
+            document.getElementById('showAdmin').innerHTML = `
+           
+                <h1 class="app-title" > Admin Info: </h1 >
+             <div class="info" >   
+                 <h2>Email: <span onclick="setEmail('${adminJson[0].email}')">  ${adminJson[0].email}</span> </h2>
+                 <h2>Password: <span onclick="setPass('${adminJson[0].password}')"> ${adminJson[0].password}</span> </h2>
+                 <button >Edit</button>
+
+          </div>
+        `
+        }
+    }
+    function setEmail(email) {
+
+
+        let newEmail = prompt("Please enter new Email:", email);
+
+        $.ajax({
+            url: "/changeAdminEmail",
+            method: "POST",
+            data: { oldEmail: email, newEmail: newEmail },
+            success: function (res) {
+                if (res != "ok") {
+                    alert("worng connection");
+
+                } else {
+                    alert("Change!");
+                    document.location.reload(true)
+                }
+
+            }
+        });
+        return false;
+    }
+
+
+
+    function setPass(pass) {
+        let newPass = prompt("Please enter new Pass:", pass);
+
+        $.ajax({
+            url: "/changeAdminPassword",
+            method: "POST",
+            data: { oldPassword: pass, newPassword: pass },
+            success: function (res) {
+                if (res != "ok") {
+                    alert("worng connection");
+
+                } else {
+                    alert("Change!");
+                    document.location.reload(true)
+                }
+
+            }
+        });
+        return false;
+    }
+
+
+
+
+</script>
+
+<script>
 </script>
 
 </html>
