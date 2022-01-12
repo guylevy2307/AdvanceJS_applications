@@ -159,6 +159,25 @@ app.post("/editTime", function (req, res) {
     )
 
 })
+app.post("/editScreen", function (req, res) {
+    var name = req.body.name;
+    var screen = req.body.screen;
+    MongoClient.connect(
+        connectUrl,
+        { useNewUrlParser: true },
+        (error, client) => {
+            if (error) {
+                return console.log("Can't connect to DB!")
+            }
+            //save database reference
+            const db = client.db(dataBaseName)
+            db.collection('messages').findOneAndUpdate({ "name": name }, { $set: { id: screen } });
+            sortMess(db);
+            res.send("ok");
+        },
+    )
+
+})
 app.post("/deleteMes", function (req, res) {
     console.log("try to delete")
     var name = req.body.name;
